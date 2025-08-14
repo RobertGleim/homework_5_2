@@ -156,13 +156,21 @@ def delete_customer(customers_id):
     print(f"Customer deleted: {customer.first_name} {customer.last_name}")
     return jsonify({"message": f"Sorry to see you go! {customers_id}"}), 200
 
-# @app.route('/customers/<int:customer_id>', methods=['PUT'])
-# def update_customer(customer_id):
-#     customer = db.session.get(Customers, customer_id)
-#     db.session.append(customer)
-#     db.session.commit()
-#     print(f"Customer updated: {customer.first_name} {customer.last_name}")
-#     return customer_schema.jsonify(customer), 200
+@app.route('/customers/<int:customer_id>', methods=['PUT'])
+def update_customer(customer_id):
+    customer = db.session.get(Customers, customer_id)
+    
+    if not customer:
+        return jsonify({"message": "Customer not found"}), 404
+    try:
+        Customer_data = customer_schema.load(request.json)
+    except ValidationError as e:
+        return jsonify({"Message": e.messages}), 400
+    for key, value in Customer_data.items():
+        setattr(customer, key, value)
+    db.session.commit()
+    print(f"Customer updated: {customer.first_name} {customer.last_name}")
+    return customer_schema.jsonify(customer), 200
 
     
 
